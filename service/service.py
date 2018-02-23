@@ -219,7 +219,7 @@ def generate_testdata(master_node, target_node, full_sync):
 
             config["source"] = new_source
             try:
-                target_pipe.modify(config, force=False)
+                target_pipe.modify(config, force=True)
             except BaseException as e:
                 logger.exception("Error: %s with config:  %s" % (e, config))
 
@@ -297,8 +297,7 @@ if __name__ == '__main__':
             "use_binary_source": True
         }
     else:
-        master_node = json.loads(os.environ["TARGET_NODE"])
-
+        target_node = json.loads(os.environ["TARGET_NODE"])
 
     if not master_node["endpoint"].endswith("/"):
         master_node["endpoint"] += "/"
@@ -312,7 +311,7 @@ if __name__ == '__main__':
     if not target_node["endpoint"].endswith("/"):
         target_node["endpoint"] += "/"
 
-    logger.info("Target API endpoint is: %s" % master_node["endpoint"] + "api")
+    logger.info("Target API endpoint is: %s" % target_node["endpoint"] + "api")
 
     target_node["api_connection"] = sesamclient.Connection(sesamapi_base_url=target_node["endpoint"] + "api",
                                                            jwt_auth_token=target_node["jwt_token"],
@@ -321,7 +320,7 @@ if __name__ == '__main__':
     if full_sync:
         logger.info("Duplicate master and target...")
         config = master_node["api_connection"].get_config()
-        target_node["api_connection"].upload_config(config)
+        target_node["api_connection"].upload_config(config, force=True)
         copy_environment_variables(master_node, target_node)
         stop_and_disable_pipes(target_node["api_connection"].get_pipes())
         #vars = master_node["api_connection"].get_env_vars()
